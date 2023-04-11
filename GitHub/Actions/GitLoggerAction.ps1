@@ -1,5 +1,5 @@
 if ($env:GITHUB_WORKSPACE) {
-    git fetch
+    git fetch --unshallow
 }
 
 $progId = Get-Random
