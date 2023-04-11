@@ -101,17 +101,6 @@ runs:
             # Get all commits on the current branch
         }
         
-        $connStr = 
-            if ($env:SECRETS_CONTEXT -and $(
-                $workflowSecrets = ConvertFrom-Json $env:SECRETS_CONTEXT;$workflowSecrets.GIT_LOGGER_CONNECTION_STRING
-            )) {
-                $workflowSecrets.GIT_LOGGER_CONNECTION_STRING
-            } elseif ($(
-                $secureSettingValue = Get-Secret -Name GitloggerConnectionString -AsPlainText; $secureSettingValue
-            )) {
-                $secureSettingValue
-            }
-        
         $gitLoggerPushUrl = 'https://gitloggerfunction.azurewebsites.net/PushGitLogger/'
         
         $gotResponse = Invoke-RestMethod -Uri $gitLoggerPushUrl
