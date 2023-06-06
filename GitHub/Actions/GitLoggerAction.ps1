@@ -119,7 +119,7 @@ if ($currentBranch.BranchName -eq $headBranch) {
     } else {
         "Logging Within a Week of $timeSinceLastLoggedCommit" | Out-Host
         # If we already have commits, get logs since a week before the last known commit.        
-        git log -Statistics -Since ($timeSinceLastLoggedCommit - "7.00:00:00") | 
+        git log -Statistics -Since ($gotResponse.CommitDate.AddDays(-7)) | 
             FlattenLogObject
     }
 } else {    
