@@ -127,12 +127,12 @@ runs:
         } else {
         
             "Fetching $headbranch (for comparison)" | Out-Host
-            git fetch "$($gitRemote.RemoteName)/$headBranch" --unshallow | Out-Host
+            git fetch "$($gitRemote.RemoteName)/$headBranch" | Out-Host
             
         
         
             "Logging Changes from $currentBranch" | Out-Host
-            git log -CurrentBranch -Statistics    |
+            git log "$headBranch..$CurrentBranch" -Statistics    |
                 FlattenLogObject
             # Get all commits on the current branch
         }
