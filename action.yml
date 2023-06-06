@@ -127,7 +127,7 @@ runs:
         } else {
         
             "Fetching $headbranch (for comparison)" | Out-Host
-            git fetch "$($gitRemote.RemoteName)/$headBranch" | Out-Host
+            git fetch "$headBranch" | Out-Host
             
         
         
