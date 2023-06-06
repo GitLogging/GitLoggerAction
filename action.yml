@@ -102,6 +102,7 @@ runs:
                 Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru
         }
         
+        $gitRemote = git remote
         $headBranch = git remote |
             Select-Object -First 1 |
             git remote show |
@@ -124,6 +125,12 @@ runs:
                     FlattenLogObject
             }
         } else {
+        
+            "Fetching $headbranch (for comparison)" | Out-Host
+            git fetch "$($gitRemote.RemoteName)/$headBranch" --unshallow | Out-Host
+            
+        
+        
             "Logging Changes from $currentBranch" | Out-Host
             git log -CurrentBranch -Statistics    |
                 FlattenLogObject
