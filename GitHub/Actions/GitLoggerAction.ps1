@@ -110,7 +110,7 @@ $currentBranch = git branch | Where-Object IsCurrentBranch
 
 
 $allLogs = 
-if ($currentBranch -eq $headBranch) {
+if ($currentBranch.BranchName -eq $headBranch) {
     # If the current branch is head branch, see if we know the time of the last commit
     if (-not $timeSinceLastLoggedCommit) {
         "Logging All Changes" | Out-Host
@@ -122,7 +122,7 @@ if ($currentBranch -eq $headBranch) {
         git log -Statistics -Since $timeSinceLastLoggedCommit.AddDays(-7) | 
             FlattenLogObject
     }
-} else {
+} else {    
     "Logging Changes from $currentBranch" | Out-Host
     git log "$($gitRemote.RemoteName)/$headBranch..$CurrentBranch" -Statistics    |
         FlattenLogObject
