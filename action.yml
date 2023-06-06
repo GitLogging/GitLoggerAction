@@ -125,12 +125,6 @@ runs:
                     FlattenLogObject
             }
         } else {
-        
-            "Fetching $headbranch (for comparison)" | Out-Host
-            git fetch "$headBranch" | Out-Host
-            
-        
-        
             "Logging Changes from $currentBranch" | Out-Host
             git log "$headBranch..$CurrentBranch" -Statistics    |
                 FlattenLogObject
