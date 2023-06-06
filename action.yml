@@ -132,7 +132,7 @@ runs:
             } else {
                 "Logging Within a Week of $timeSinceLastLoggedCommit" | Out-Host
                 # If we already have commits, get logs since a week before the last known commit.        
-                git log -Statistics -Since $timeSinceLastLoggedCommit.AddDays(-7) | 
+                git log -Statistics -Since ($timeSinceLastLoggedCommit - "7.00:00:00") | 
                     FlattenLogObject
             }
         } else {    
