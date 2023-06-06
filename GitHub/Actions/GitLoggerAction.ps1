@@ -117,7 +117,7 @@ if ($currentBranch.BranchName -eq $headBranch) {
         git log -Statistics |
             FlattenLogObject
     } else {
-        "Logging Within a Week of $timeSinceLastLoggedCommit" | Out-Host
+        "Logging Within a Week of $($gotResponse.CommitDate)" | Out-Host
         # If we already have commits, get logs since a week before the last known commit.        
         git log -Statistics -Since ($gotResponse.CommitDate.AddDays(-7)) | 
             FlattenLogObject
