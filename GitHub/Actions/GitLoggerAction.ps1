@@ -5,6 +5,17 @@ if ($env:GITHUB_WORKSPACE) {
 $progId = Get-Random
 
 
+$gitHubEvent = if ($env:GITHUB_EVENT_PATH) {
+    [IO.File]::ReadAllText($env:GITHUB_EVENT_PATH) | ConvertFrom-Json
+} else { $null }
+
+@"
+::group::GitHubEvent
+$($gitHubEvent | ConvertTo-Json -Depth 100)
+::endgroup::
+"@ | Out-Host
+
+
 $imported = foreach ($moduleRequirement in 'ugit') {
     Write-Progress "Importing Modules" "$moduleRequirement" -Id $progId
     $requireLatest = $false
@@ -62,31 +73,63 @@ $imported = foreach ($moduleRequirement in 'ugit') {
     }
 }
 
-$gitRemoteUrl = git remote | git remote get-url | Select-Object -First 1
+$gitRemoteUrl = git remote | git remote get-url | Select-Object -First 1 -ExpandProperty RemoteUrl
+$GetGitLoggerUrl = 'https://gitloggerfunction.azurewebsites.net/GetGitLogger/'
+$gotError = $false
+$timeSinceLastLoggedCommit = $null
+$gotResponse = try {
+    Invoke-RestMethod -Uri "${GetGitLoggerUrl}?Repository=$gitRemoteUrl&SortBy=CommitDate&First=1&Property=CommitDate" -ErrorAction SilentlyContinue -ErrorVariable gotError
+} catch {
+    $gotError = $_
+    $_
+}
+if ($gotResponse.CommitDate) {
+    $timeSinceLastLoggedCommit = [DateTime]::Now - $gotResponse.CommitDate
+}
+elseif ($gotResponse -is [Management.Automation.ErrorRecord]) {
+    # Nothing exists yet
+}
+
 Write-Progress "Getting Logs" " $gitRemotUrl " -Id $progId
 
-$allLogs = git log --stat | 
-    Foreach-Object {
-        $_.CommitDate = $_.CommitDate.ToString('s')
-        $_.GitOutputLines = $_.GitOutputLines -join [Environment]::NewLine
-        $_ |
-            Add-Member NoteProperty RepositoryURL $gitRemoteUrl.RemoteUrl -Force -PassThru
-    }
+filter FlattenLogObject {
+    if (-not $_.CommitDate) { return }
+    $_.CommitDate = $_.CommitDate.ToString('s')
+    $_.GitOutputLines = $_.GitOutputLines -join [Environment]::NewLine
+    $_ |
+        Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru
+}
 
-$allJson = $allLogs | ConvertTo-Json -Depth 20
-
+$gitRemote = git remote
 $headBranch = git remote |
     Select-Object -First 1 |
     git remote show |
     Select-Object -ExpandProperty HeadBranch
 $currentBranch = git branch | Where-Object IsCurrentBranch
 
-if ($currentBranch -eq $headBranch) {
-    # If the current branch is head branch, get the last N commits
 
+
+$allLogs = 
+if ($currentBranch -eq $headBranch) {
+    # If the current branch is head branch, see if we know the time of the last commit
+    if (-not $timeSinceLastLoggedCommit) {
+        "Logging All Changes" | Out-Host
+        git log -Statistics |
+            FlattenLogObject
+    } else {
+        "Logging Within a Week of $timeSinceLastLoggedCommit" | Out-Host
+        # If we already have commits, get logs since a week before the last known commit.        
+        git log -Statistics -Since $timeSinceLastLoggedCommit.AddDays(-7) | 
+            FlattenLogObject
+    }
 } else {
+    "Logging Changes from $currentBranch" | Out-Host
+    git log "$($gitRemote.RemoteName)/$headBranch..$CurrentBranch" -Statistics    |
+        FlattenLogObject
     # Get all commits on the current branch
 }
+
+$allJson = $allLogs | ConvertTo-Json -Depth 20
 
 $gitLoggerPushUrl = 'https://gitloggerfunction.azurewebsites.net/PushGitLogger/'
 
