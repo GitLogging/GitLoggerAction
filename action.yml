@@ -137,7 +137,7 @@ runs:
             }
         } else {
             "Logging Changes from $currentBranch" | Out-Host
-            git log "$headBranch..$CurrentBranch" -Statistics    |
+            git log "$($gitRemote.RemoteName)/$headBranch..$CurrentBranch" -Statistics    |
                 FlattenLogObject
             # Get all commits on the current branch
         }
