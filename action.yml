@@ -18,6 +18,17 @@ runs:
         $progId = Get-Random
         
         
+        $gitHubEvent = if ($env:GITHUB_EVENT_PATH) {
+            [IO.File]::ReadAllText($env:GITHUB_EVENT_PATH) | ConvertFrom-Json
+        } else { $null }
+        
+        @"
+        ::group::GitHubEvent
+        $($gitHubEvent | ConvertTo-Json -Depth 100)
+        ::endgroup::
+        "@ | Out-Host
+        
+        
         $imported = foreach ($moduleRequirement in 'ugit') {
             Write-Progress "Importing Modules" "$moduleRequirement" -Id $progId
             $requireLatest = $false
