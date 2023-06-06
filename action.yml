@@ -136,6 +136,7 @@ runs:
                     FlattenLogObject
             }
         } else {
+            "HEAD branch '$HeadBranch' was different from current branch '$CurrentBranch'" | Out-Host
             "Logging Changes from $currentBranch" | Out-Host
             git log "$($gitRemote.RemoteName)/$headBranch..$CurrentBranch" -Statistics    |
                 FlattenLogObject
