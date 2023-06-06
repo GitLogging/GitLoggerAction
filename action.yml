@@ -92,9 +92,6 @@ runs:
             # Nothing exists yet
         }
         
-        
-        return
-        
         Write-Progress "Getting Logs" " $gitRemotUrl " -Id $progId
         
         filter FlattenLogObject {
