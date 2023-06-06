@@ -1,3 +1,3 @@
 @{
-    ModuleVersion = '0.1'
+    ModuleVersion = '0.1.1'
 }
