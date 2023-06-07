@@ -92,14 +92,6 @@ elseif ($gotResponse -is [Management.Automation.ErrorRecord]) {
 
 Write-Progress "Getting Logs" " $gitRemotUrl " -Id $progId
 
-filter FlattenLogObject {
-    if (-not $_.CommitDate) { return }
-    $_.CommitDate = $_.CommitDate.ToString('s')
-    $_.GitOutputLines = $_.GitOutputLines -join [Environment]::NewLine
-    $_ |
-        Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru
-}
-
 $gitRemote = git remote
 $headBranch = git remote |
     Select-Object -First 1 |
@@ -111,6 +103,17 @@ if ($currentBranch.BranchName -like '*detached*' -or $currentBranch.Detached) {
     "On Detached Branch, not logging." | Out-Host
     return
 }
+
+filter FlattenLogObject {
+    if (-not $_.CommitDate) { return }
+    $_.CommitDate = $_.CommitDate.ToString('s')
+    $_.GitOutputLines = $_.GitOutputLines -join [Environment]::NewLine
+    $_ |
+        Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru |
+        Add-Member NoteProperty IsPrivateRepository ($gitHubEvent.repository.private -as [bool]) -Force -PassThru |
+        Add-Member NoteProperty CommitBranch $currentBranch.BranchName -Force -PassThru
+}
+
 
 $allLogs = 
 if ($currentBranch.BranchName -eq $headBranch) {
