@@ -105,14 +105,6 @@ runs:
         
         Write-Progress "Getting Logs" " $gitRemotUrl " -Id $progId
         
-        filter FlattenLogObject {
-            if (-not $_.CommitDate) { return }
-            $_.CommitDate = $_.CommitDate.ToString('s')
-            $_.GitOutputLines = $_.GitOutputLines -join [Environment]::NewLine
-            $_ |
-                Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru
-        }
-        
         $gitRemote = git remote
         $headBranch = git remote |
             Select-Object -First 1 |
@@ -120,6 +112,20 @@ runs:
             Select-Object -ExpandProperty HeadBranch
         $currentBranch = git branch | Where-Object IsCurrentBranch
         
+        if ($currentBranch.BranchName -like '*detached*' -or $currentBranch.Detached) {
+            "On Detached Branch, not logging." | Out-Host
+            return
+        }
+        
+        filter FlattenLogObject {
+            if (-not $_.CommitDate) { return }
+            $_.CommitDate = $_.CommitDate.ToString('s')
+            $_.GitOutputLines = $_.GitOutputLines -join [Environment]::NewLine
+            $_ |
+                Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru |
+                Add-Member NoteProperty IsPrivateRepository ($gitHubEvent.repository.private -as [bool]) -Force -PassThru |
+                Add-Member NoteProperty CommitBranch $currentBranch.BranchName -Force -PassThru
+        }
         
         
         $allLogs = 
@@ -153,11 +159,11 @@ runs:
             return
         }
         
-        $repoRestUrl = $gitLoggerPushUrl + '/' + ($gitRemoteUrl.RemoteUrl -replace '^(?>https?|git|ssh)://' -replace '\.git$') + '.git'
+        $repoRestUrl = $gitLoggerPushUrl + '/' + ($gitRemoteUrl -replace '^(?>https?|git|ssh)://' -replace '\.git$') + '.git'
+        
         $Result = Invoke-RestMethod -Uri $repoRestUrl -Body $allJson -Method Post
         
-        "Logged $($result) commits to GitLogger" | Out-Host
-        
+        "Logged $($result) commits to $repoRestUrl" | Out-Host
         
         
 

@@ -17,6 +17,8 @@
             if   = '${{github.ref_name != ''main''}}'
             uses = './'
             id = 'GitLoggerBranch'
-        }
+        },
+        'TagModuleVersion',
+        'ReleaseModule'
     )
 }
