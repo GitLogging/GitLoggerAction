@@ -146,7 +146,7 @@ if (-not $gotResponse) {
     return
 }
 
-$repoRestUrl = $gitLoggerPushUrl + '/' + ($gitRemoteUrl.RemoteUrl -replace '^(?>https?|git|ssh)://' -replace '\.git$') + '.git'
+$repoRestUrl = $gitLoggerPushUrl + '/' + ($gitRemoteUrl -replace '^(?>https?|git|ssh)://' -replace '\.git$') + '.git'
 
 $Result = Invoke-RestMethod -Uri $repoRestUrl -Body $allJson -Method Post
 
