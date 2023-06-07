@@ -107,7 +107,10 @@ $headBranch = git remote |
     Select-Object -ExpandProperty HeadBranch
 $currentBranch = git branch | Where-Object IsCurrentBranch
 
-
+if ($currentBranch.BranchName -like '*detached*' -or $currentBranch.Detached) {
+    "On Detached Branch, not logging." | Out-Host
+    return
+}
 
 $allLogs = 
 if ($currentBranch.BranchName -eq $headBranch) {
