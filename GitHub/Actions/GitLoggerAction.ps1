@@ -106,12 +106,13 @@ if ($currentBranch.BranchName -like '*detached*' -or $currentBranch.Detached) {
 
 filter FlattenLogObject {
     if (-not $_.CommitDate) { return }
-    $_.CommitDate = $_.CommitDate.ToString('s')
-    $_.GitOutputLines = $_.GitOutputLines -join [Environment]::NewLine
-    $_ |
+    $logObject = $_    
+    $logObject.GitOutputLines = $logObject.GitOutputLines -join [Environment]::NewLine    
+    $logObject |
         Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru |
         Add-Member NoteProperty IsPrivateRepository ($gitHubEvent.repository.private -as [bool]) -Force -PassThru |
-        Add-Member NoteProperty CommitBranch $currentBranch.BranchName -Force -PassThru
+        Add-Member NoteProperty CommitBranch $currentBranch.BranchName -Force -PassThru |
+        Add-Member NoteProperty CommitDate $logObject.CommitDate.ToString('s') -Force -PassThru
 }
 
 
