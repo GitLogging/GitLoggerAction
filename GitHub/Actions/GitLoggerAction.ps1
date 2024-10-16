@@ -105,10 +105,16 @@ if ($currentBranch.BranchName -like '*detached*' -or $currentBranch.Detached) {
     return
 }
 
+$distinctHash = @{}
+
 filter FlattenLogObject {
     if (-not $_.CommitDate) { return }
     $logObject = $_    
     $logObject.GitOutputLines = $logObject.GitOutputLines -join [Environment]::NewLine
+    if ($distinctHash[$logObject.CommitHash]) {
+        return
+    }
+    $distinctHash[$logObject.CommitHash] = $true
     # CommitDate is a ScriptProperty, so we need to convert it to a NoteProperty in a fixed format.
     # We start by capturing the variable
     $commitDate = $logObject.CommitDate.ToString('s')
@@ -147,7 +153,7 @@ if ($currentBranch.BranchName -eq $headBranch) {
 
 $allJson = $allLogs | ConvertTo-Json -Depth 20
 
-$gitLoggerPushUrl = 'https://gitloggerfunction.azurewebsites.net/PushGitLogger/'
+$gitLoggerPushUrl = 'https://gitloggerfunction.azurewebsites.net/PushGitLogger'
 
 $gotResponse = try {
     Invoke-RestMethod -Uri $gitLoggerPushUrl
@@ -167,7 +173,7 @@ $Result =
     try {
         Invoke-RestMethod -Uri $repoRestUrl -Body $allJson -Method Post
     } catch {
-        "::error::$($_.Exception.Message)"
+        "::error::$($_ | Out-String -Width 1kb)"
     }
 
 "Logged $($result) commits to $repoRestUrl" | Out-Host
