@@ -148,7 +148,12 @@ $allJson = $allLogs | ConvertTo-Json -Depth 20
 
 $gitLoggerPushUrl = 'https://gitloggerfunction.azurewebsites.net/PushGitLogger/'
 
-$gotResponse = Invoke-RestMethod -Uri $gitLoggerPushUrl
+$gotResponse = try {
+    Invoke-RestMethod -Uri $gitLoggerPushUrl
+} catch {
+    $gotError = $_
+    $false
+}
 
 if (-not $gotResponse) {
     Write-Error "$gitloggerPushUrl unavailable"
@@ -157,7 +162,12 @@ if (-not $gotResponse) {
 
 $repoRestUrl = $gitLoggerPushUrl + '/' + ($gitRemoteUrl -replace '^(?>https?|git|ssh)://' -replace '\.git$') + '.git'
 
-$Result = Invoke-RestMethod -Uri $repoRestUrl -Body $allJson -Method Post
+$Result = 
+    try {
+        Invoke-RestMethod -Uri $repoRestUrl -Body $allJson -Method Post
+    } catch {
+        "::error::$($_.Exception.Message)"
+    }
 
 "Logged $($result) commits to $repoRestUrl" | Out-Host
 
