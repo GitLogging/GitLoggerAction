@@ -107,12 +107,20 @@ if ($currentBranch.BranchName -like '*detached*' -or $currentBranch.Detached) {
 filter FlattenLogObject {
     if (-not $_.CommitDate) { return }
     $logObject = $_    
-    $logObject.GitOutputLines = $logObject.GitOutputLines -join [Environment]::NewLine    
+    $logObject.GitOutputLines = $logObject.GitOutputLines -join [Environment]::NewLine
+    # CommitDate is a ScriptProperty, so we need to convert it to a NoteProperty in a fixed format.
+    # We start by capturing the variable
+    $commitDate = $logObject.CommitDate.ToString('s')
+    # Then we add a property
+    $logObject.psobject.properties.add(
+        # with the overridden value        
+        [psnoteproperty]::new('CommitDate',$commitDate),
+        $true # (passing $true to force the override)
+    )
     $logObject |
         Add-Member NoteProperty RepositoryURL $gitRemoteUrl -Force -PassThru |
         Add-Member NoteProperty IsPrivateRepository ($gitHubEvent.repository.private -as [bool]) -Force -PassThru |
-        Add-Member NoteProperty CommitBranch $currentBranch.BranchName -Force -PassThru |
-        Add-Member NoteProperty CommitDate $logObject.CommitDate.ToString('s') -Force -PassThru
+        Add-Member NoteProperty CommitBranch $currentBranch.BranchName -Force -PassThru
 }
 
 
