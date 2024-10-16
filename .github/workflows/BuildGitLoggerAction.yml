@@ -9,7 +9,7 @@ jobs:
     if: ${{ success() }}
     steps: 
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Run GitLogger (from main)
         if: ${{github.ref_name == 'main'}}
         uses: GitLogging/GitLoggerAction@main
