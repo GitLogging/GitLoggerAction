@@ -1,3 +1,4 @@
+$ErrorActionPreference = 'continue'
 if ($env:GITHUB_WORKSPACE) {
     git fetch --unshallow
 }
