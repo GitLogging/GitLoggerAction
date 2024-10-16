@@ -161,3 +161,6 @@ $Result = Invoke-RestMethod -Uri $repoRestUrl -Body $allJson -Method Post
 
 "Logged $($result) commits to $repoRestUrl" | Out-Host
 
+# Always exiting zero, because we don't want to fail the build if this fails
+# (a failure to log should not be a failure to build)
+exit 0
